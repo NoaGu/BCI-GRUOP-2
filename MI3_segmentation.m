@@ -18,23 +18,27 @@ numChans = length(EEG_chans);                                   % how many chans
 load(strcat(recordingFolder,'\EEG_events.mat'));                % load the EEG event markers
 
 %% Extract trials through the events
-trials1 = length(trainingVec);                                  % derive number of trials from training label vector
-events = struct('type', {EEG_event(1:end).type});
-for i = 1:length(events)
+trials1 = length(trainingVec)
+% derive number of trials from training label vector
+events = struct('type', {EEG_event(1:end).type})
+%ind=find(strcmp(events.type,'000.000000000000'))
+for i = 2:length(events)
     if strcmp('1111.000000000000',events(i).type)               % find trial start marker
-        marker1Index(i) = 1;                                    % index markers
+        marker1Index(i) = 1     ;                              % index markers
     else
         marker1Index(i) = 0;
     end
 end
-mark1Index = find(marker1Index);                                % index of each trial start
-trials = length(mark1Index);                                    % derive number of trials from start markers
+mark1Index = find(marker1Index); % index of each trial start
+trials = length(mark1Index)                                   % derive number of trials from start markers
 
 % Check for consistancy across events & trials
-if trials ~= trials1
-    disp('!!!! Some form of mis-match between number of recorded and planned trials.')
-    return
-end
+%if trials ~= trials1
+ %   disp('!!!! Some form of mis-match between number of recorded and planned trials.')
+   
+  %  print(trials1)
+   % return
+%end
 MIData = [];                                                    % initialize main matrix
 
 %% Main data segmentation process:

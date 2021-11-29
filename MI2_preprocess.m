@@ -21,7 +21,7 @@ addpath 'C:\Users\User\Desktop\bci\eeglab2021.1'           % update to your own 
 eeglab;                                     % open EEGLAB 
 highLim = 40;                               % filter data under 40 Hz
 lowLim = 0.5;                               % filter data above 0.5 Hz
-recordingFile = strcat(recordingFolder,'\EEG6.XDF');
+recordingFile = strcat(recordingFolder,'\EEG_sub10.XDF');
 
 % (1) Load subject data (assume XDF)
 EEG = pop_loadxdf(recordingFile, 'streamtype', 'EEG', 'exclude_markerstreams', {});

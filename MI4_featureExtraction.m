@@ -13,8 +13,8 @@ function [] = MI4_featureExtraction(recordingFolder)
 % so on - but please cite properly if published.
 
 %% Load previous variables:
-load(strcat(recordingFolder,'EEG_chans.mat'));                  % load the openBCI channel location
-load(strcat(recordingFolder,'MIData.mat'));                     % load the EEG data
+load(strcat(recordingFolder,'\EEG_chans.mat'));                  % load the openBCI channel location
+load(strcat(recordingFolder,'\MIData.mat'));                     % load the EEG data
 targetLabels = cell2mat(struct2cell(load(strcat(recordingFolder,'\trainingVec'))));
 
 Features2Select = 10;                                           % number of featuers for feature selection
@@ -83,10 +83,10 @@ rightClass = MIData(targetLabels == 2,:,:);
 overallLeft = [];
 overallRight = [];
 for trial=1:size(leftClass,1)
-    overallLeft = [overallLeft squeeze(leftClass(trial,:,:))];
-    overallRight = [overallRight squeeze(rightClass(trial,:,:))];
+    overallLeft = [overallLeft ;squeeze(leftClass(trial,:,:))];
+    overallRight = [overallRight ;squeeze(rightClass(trial,:,:))];
 end
-
+size(overallLeft)
 % Split into training and test sets:
 idleIdx = find(targetLabels == 3);                                  % find idle trials
 leftIdx = find(targetLabels == 1);                                  % find left trials
@@ -98,9 +98,9 @@ trainOVerallRight = overallRight(rightIndices(1:percentRightIdx),:);
 leftIndices = randperm(length(leftIdx));
 percentLeftIdx = floor(0.8*length(leftIdx));
 trainOverallLeft = overallLeft(leftIndices(1:percentLeftIdx),:);
-
+size(trainOverallLeft)
 % visualize the CSP data:
-vizTrial = 11;      % cherry-picked!
+vizTrial = 5;      % cherry-picked!
 figure;
 subplot(1,2,1)      % show a single trial before CSP seperation
 scatter3(squeeze(trainOverallLeft(vizTrial,1,:)),squeeze(trainOverallLeft(vizTrial,2,:)),squeeze(trainOverallLeft(vizTrial,3,:)),'b'); hold on
