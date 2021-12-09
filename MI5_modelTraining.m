@@ -10,9 +10,10 @@ function [test_results] = MI5_modelTraining(recordingFolder)
 
 %% Read the features & labels 
 
-FeaturesTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\FeaturesSelected.mat'))));   % features for train set
+FeaturesTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\FeaturesTrainSelected.mat'))))   % features for train set
 LabelTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\LabelTrain'))));                % label vector for train set
-
+length(LabelTrain)
+size(FeaturesTrain)
 % label vector
 LabelTest = cell2mat(struct2cell(load(strcat(recordingFolder,'\LabelTest'))));      % label vector for test set
 load(strcat(recordingFolder,'\FeaturesTest.mat'));                                  % features for test set
@@ -23,15 +24,20 @@ load(strcat(recordingFolder,'\FeaturesTest.mat'));                              
 
 %% test data
 testPrediction = classify(FeaturesTest,FeaturesTrain,LabelTrain,'linear');          % classify the test set using a linear classification object (built-in Matlab functionality)
-W = LDA(FeaturesTrain,LabelTrain);                                                  % train a linear discriminant analysis weight vector (first column is the constants)
-
+W = LDA(FeaturesTrain,LabelTrain)                                                 % train a linear discriminant analysis weight vector (first column is the constants)
+predicted=W(:,2:end)*FeaturesTest'
+predicted=softmax(predicted)
+for i=1:length(predicted)
+d(i)=find(predicted(:,i)==max(predicted(:,i)))
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% Add your own classifier %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Test data
 % test prediction from linear classifier
-test_results = (testPrediction'-LabelTest);                                         % prediction - true labels = accuracy
+%test_results = (testPrediction'-LabelTest);
+test_results = (d-LabelTest);% prediction - true labels = accuracy
 test_results = (sum(test_results == 0)/length(LabelTest))*100;
 disp(['test accuracy - ' num2str(test_results) '%'])
 

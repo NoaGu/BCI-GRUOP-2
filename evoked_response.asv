@@ -49,10 +49,9 @@ plot(xlabels,(abs(x)))
 title('no_move')
 %%
 figure()
-plot(evoked_left(:,2))
+plot(evoked_left(:,1))
 hold on
-plot(evoked_right(:,2))
+plot(evoked_leftright(:,1))
 hold on
-plot(evoked_no(:,2))
+plot(no_move(:,1))
 legend({'left','right','no'})
-%%
