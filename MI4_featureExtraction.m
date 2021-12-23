@@ -15,6 +15,9 @@ function [] = MI4_featureExtraction(recordingFolder)
 %% Load previous variables:
 load(strcat(recordingFolder,'\EEG_chans.mat'));                  % load the openBCI channel location
 load(strcat(recordingFolder,'\MIData.mat'));                     % load the EEG data
+if size(MIData,2)>13
+    MIData(:,14:end,:)=[]
+end
 targetLabels = cell2mat(struct2cell(load(strcat(recordingFolder,'\trainingVec'))));
 
 Features2Select = 10;                                           % number of featuers for feature selection
@@ -101,7 +104,7 @@ for trial=1:percentIdx
 end
 
 % visualize the CSP data:
-vizTrial = 11;      % cherry-picked!
+vizTrial = 5;      % cherry-picked!
 figure;
 subplot(1,2,1)      % show a single trial before CSP seperation
 scatter3(squeeze(leftClass(vizTrial,1,:)),squeeze(leftClass(vizTrial,2,:)),squeeze(leftClass(vizTrial,3,:)),'b'); hold on
@@ -283,7 +286,46 @@ class = fscnca(FeaturesTrain,LabelTrain);   % feature selection
 SelectedIdx = selected(1:Features2Select);
 FeaturesTrainSelected = FeaturesTrain(:,SelectedIdx);       % updating the matrix feature
 FeaturesTest = FeaturesTest(:,SelectedIdx);                 % updating the matrix feature
+%% Matrix visualization 
+figure;
+num_channels = 13;
+num_features_per_channel = 14;
+% weightMatrix = zeros(num_channels, num_features_per_channel);
+weightMatrix = reshape(class.FeatureWeights(4:end), num_features_per_channel, num_channels).';
+features_headers = {'15.5-18.5 band', '8-10.5 band', '10-15.5 band', '17.5-20.5 band', ...
+    '12.5-30 band', 'Root', 'Moment', 'Edge', ...
+    'Entropy', 'Slope', 'Intercept', 'Mean freq', 'Obw', 'Powerbw'};
+channel_names = {'C03','C04','C0Z','FC1',...
+    'FC2','FC5','F06','CP1', 'CP2',...
+    'CP5','CP6','O01','O02'};
+imagesc(weightMatrix);
+xticks([1:14])
+yticks([1:13])
+xticklabels(features_headers)
+xtickangle(70)
+yticklabels(channel_names)
+title('Feature matrix visualization')
+% Set up where it will show x, y, and value in status line.
+impixelinfo;
+% Get the current colormap
+cmap = colormap;
 % saving
+figure()
+for i=1:length(LabelTrain)
+ colors={'r','b','g'}
+ scatter(FeaturesTrain(i,1),FeaturesTrain(i,2),colors{LabelTrain(i)})
+ hold on
+end
+legend({'left','right','Idle'})
+X=pca(AllDataInFeatures);
+FeaturesTrain_pca=FeaturesTrain*X;
+figure()
+for i=1:length(LabelTrain)
+ colors={'r','b','g'}
+ scatter3(FeaturesTrain_pca(i,1),FeaturesTrain_pca(i,2),FeaturesTrain_pca(i,3),colors{LabelTrain(i)})
+ hold on
+end
+legend({'left','right','Idle'})
 save(strcat(recordingFolder,'\FeaturesTrain.mat'),'FeaturesTrain');
 save(strcat(recordingFolder,'\FeaturesTrainSelected.mat'),'FeaturesTrainSelected');
 save(strcat(recordingFolder,'\FeaturesTest.mat'),'FeaturesTest');

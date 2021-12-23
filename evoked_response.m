@@ -1,10 +1,13 @@
-n=1
-for i=[4:4:120,126:4:242]
-    
-    train(n)=str2num(EEG_event(i).type)
-    n=n+1
-end
+%n=1
+%for i=[4:4:120,126:4:242]
+ %   
+  %  train(n)=str2num(EEG_event(i).type)
+   % n=n+1
+%end
 %%
+
+load('MIData.mat')
+load('trainingVec.mat')
 left_ind=find(trainingVec==1)
 
 left=MIData(left_ind,:,:);
@@ -34,6 +37,7 @@ x=squeeze(mean(x))
 figure()
 xlabels=(1:626)*(125/626)'
 plot(xlabels,(abs(x)))
+x_left=abs(x)
 title('left')
 x=fft(right,626,3)
 x=squeeze(mean(x))
@@ -41,6 +45,7 @@ figure()
 xlabels=(1:626)*(125/626)'
 plot(xlabels,(abs(x)))
 title('right')
+x_right=abs(x)
 x=fft(no_move,626,3)
 x=squeeze(mean(x))
 figure()
@@ -49,10 +54,19 @@ plot(xlabels,(abs(x)))
 title('no_move')
 %%
 figure()
-plot(evoked_left(:,2))
+for i=1:13
+subplot(7,2,i)
+plot(evoked_left(:,i))
 hold on
-plot(evoked_right(:,2))
+plot(evoked_right(:,i))
 hold on
-plot(evoked_no(:,2))
-legend({'left','right','no'})
+plot(evoked_no(:,i))
+%legend({'left','right','no'})
+end
+figure()
+for i=1:13
+subplot(7,2,i)
+plot(evoked_left(:,i)-evoked_right(:,i))
+
+end
 %%
