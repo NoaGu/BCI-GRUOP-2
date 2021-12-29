@@ -1,5 +1,5 @@
 clear
-recordingFolder='C:/Recordings/Sub14'
+recordingFolder='C:/Recordings/Sub12'
 FeaturesTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\FeaturesTrainSelected.mat'))))   % features for train set
 LabelTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\LabelTrain'))));                % label vector for train set
 length(LabelTrain)

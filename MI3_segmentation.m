@@ -29,7 +29,7 @@ for i = 2:length(events)
         marker1Index(i) = 0;
     end
 end
-mark1Index = find(marker1Index); % index of each trial start
+mark1Index = find(marker1Index) % index of each trial start
 trials = length(mark1Index)                                   % derive number of trials from start markers
 
 % Check for consistancy across events & trials
@@ -44,6 +44,7 @@ MIData = [];                                                    % initialize mai
 %% Main data segmentation process:
 for trial = 1:trials
     [MIData] = sortElectrodes(MIData,EEG_data,EEG_event,Fs,trialLength,mark1Index(trial),numChans,trial);
+    size(MIData)
 end
 
 save(strcat(recordingFolder,'\MIData.mat'),'MIData');           % save sorted data
