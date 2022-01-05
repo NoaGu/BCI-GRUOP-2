@@ -46,6 +46,7 @@ EEG_chans(14,:) = 'P03';
 EEG_chans(15,:) = 'P03';
 EEG_chans(16,:) = 'P03';
 figure()
+
 plot(EEG.data')
 psd=abs(fft(EEG.data'));
 title('raw')
@@ -82,6 +83,7 @@ title('notch')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%% (5) Add advanced artifact removal functions %%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 C3_lap=EEG.data(1,:)-(sum(EEG.data([4,6,10,8],:))/4);
 figure
 plot(C3_lap)

@@ -14,8 +14,12 @@ function [] = MI4_featureExtraction(recordingFolder)
 
 %% Load previous variables:
 load(strcat(recordingFolder,'\EEG_chans.mat'));                  % load the openBCI channel location
-load(strcat(recordingFolder,'\MIData.mat'));                     % load the EEG data
-if size(MI
+load(strcat(recordingFolder,'\MIData.mat'));
+%EEG=permute(EEG,[3,1,2]);% load the EEG data
+%MIData=EEG;
+if size(MIData,2)>13
+    MIData(:,14:end,:)=[];
+end
 targetLabels = cell2mat(struct2cell(load(strcat(recordingFolder,'\trainingVec'))));
 
 Features2Select = 10;                                           % number of featuers for feature selection
@@ -102,7 +106,7 @@ for trial=1:percentIdx
 end
 
 % visualize the CSP data:
-vizTrial = 11;      % cherry-picked!
+vizTrial = 5;      % cherry-picked!
 figure;
 subplot(1,2,1)      % show a single trial before CSP seperation
 scatter3(squeeze(leftClass(vizTrial,1,:)),squeeze(leftClass(vizTrial,2,:)),squeeze(leftClass(vizTrial,3,:)),'b'); hold on
@@ -133,18 +137,28 @@ clear leftClassCSP rightClassCSP Wviz lambdaViz Aviz
 
 %% Spectral frequencies and times for bandpower features:
 % frequency bands
-bands{1} = [15.5,18.5];
-bands{2} = [8,10.5];
+%bands{1} = [15.5,18.5];
+%bands{2} = [8,10.5];
+%bands{3} = [10,15.5];
+%bands{4} = [17.5,20.5];
+%bands{5} = [12.5,30];
+bands{1} = [12 15];
+bands{2} = [15 20];
 bands{3} = [10,15.5];
 bands{4} = [17.5,20.5];
 bands{5} = [12.5,30];
     
 % times of frequency band features
-times{1} = (1*Fs : 3*Fs);
-times{2} = (3*Fs : 4.5*Fs);
-times{3} = (4.25*Fs : size(MIData,3));
-times{4} = (2*Fs : 2.75*Fs);
-times{5} = (2.5*Fs : 4*Fs);
+%times{1} = (1*Fs : 3*Fs);
+%times{2} = (3*Fs : 4.5*Fs);
+%times{3} = (4.25*Fs : size(MIData,3));
+%times{4} = (2*Fs : 2.75*Fs);
+%times{5} = (2.5*Fs : 4*Fs);
+times{1}=(1 :1*Fs)
+times{2}=(1 :1*Fs)
+times{3}=(1.5*Fs :2.5*Fs)
+times{4}=(1*Fs :size(MIData,3))
+times{5}=(1*Fs :size(MIData,3))
 
 numSpectralFeatures = length(bands);                        % how many features exist overall 
 
@@ -254,15 +268,16 @@ for trial = 1:trials                                % run over all the trials
 end
 
 % z-score all the features
-MIFeaturesLabel = zscore(MIFeaturesLabel);
+%MIFeaturesLabel = zscore(MIFeaturesLabel);
 
 % Reshape into 2-D matrix
 MIFeatures = reshape(MIFeaturesLabel,trials,[]);
 MIFeatures = [CSPFeatures MIFeatures];              % add the CSP features to the overall matrix
 AllDataInFeatures = MIFeatures;
 save(strcat(recordingFolder,'\AllDataInFeatures.mat'),'AllDataInFeatures');
-
-testIdx = randperm(length(idleIdx),num4test);                       % picking test index randomly
+length_vec=[sum(targetLabels==1),sum(targetLabels==2),sum(targetLabels==3)]
+min_length=min(length_vec)
+testIdx = randperm(min_length,num4test);                       % picking test index randomly
 testIdx = [idleIdx(testIdx) leftIdx(testIdx) rightIdx(testIdx)];    % taking the test index from each class
 testIdx = sort(testIdx);                                            % sort the trials
 
@@ -286,7 +301,7 @@ FeaturesTrainSelected = FeaturesTrain(:,SelectedIdx);       % updating the matri
 FeaturesTest = FeaturesTest(:,SelectedIdx);                 % updating the matrix feature
 %% Matrix visualization 
 figure;
-num_channels = 16;
+num_channels = 13;
 num_features_per_channel = 14;
 % weightMatrix = zeros(num_channels, num_features_per_channel);
 weightMatrix = reshape(class.FeatureWeights(4:end), num_features_per_channel, num_channels).';
@@ -308,6 +323,22 @@ impixelinfo;
 % Get the current colormap
 cmap = colormap;
 % saving
+figure()
+for i=1:length(LabelTrain)
+ colors={'r','b','g'}
+ scatter(FeaturesTrain(i,1),FeaturesTrain(i,2),colors{LabelTrain(i)})
+ hold on
+end
+legend({'left','right','Idle'})
+X=pca(AllDataInFeatures);
+FeaturesTrain_pca=FeaturesTrain*X;
+figure()
+for i=1:length(LabelTrain)
+ colors={'r','b','g'}
+ scatter3(FeaturesTrain_pca(i,1),FeaturesTrain_pca(i,2),FeaturesTrain_pca(i,3),colors{LabelTrain(i)})
+ hold on
+end
+legend({'left','right','Idle'})
 save(strcat(recordingFolder,'\FeaturesTrain.mat'),'FeaturesTrain');
 save(strcat(recordingFolder,'\FeaturesTrainSelected.mat'),'FeaturesTrainSelected');
 save(strcat(recordingFolder,'\FeaturesTest.mat'),'FeaturesTest');

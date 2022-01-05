@@ -4,7 +4,7 @@ function [recordingFolder,subID] = MI1_offline_training()
 % (#) numTrials. Before each trial, one of the targets is cued (and remains
 % cued for the entire trial).This code assumes EEG is recorded and streamed
 % through LSL for later offline preprocessing and model learning.
-
+ 
 %% This code is part of the BCI-4-ALS Course written by Asaf Harel
 % (harelasa@post.bgu.ac.il) in 2021. You are free to use, change, adapt and
 % so on - but please cite properly if published.
@@ -24,13 +24,13 @@ mkdir(recordingFolder);
 
 % Define times
 InitWait = 5;                           % before trials prep time
-trialLength = 5;                        % each trial length in seconds 
-cueLength = 1;                          % time for each cue
-readyLength = 1;                        % time "ready" on screen
-nextLength = 1;                         % time "next" on screen
+trialLength =2.5 ;                        % each trial length in seconds 
+cueLength = 0;                          % time for each cue
+readyLength = 0;                        % time "ready" on screen
+nextLength = 1.5;                         % time "next" on screen
 
 % Define length and classes
-numTrials = 15;                         % set number of training trials per class (the more classes, the more trials per class)
+numTrials = 30;                         % set number of training trials per class (the more classes, the more trials per class)
 numClasses = 3;                         % set number of possible classes
 
 % Set markers / triggers names

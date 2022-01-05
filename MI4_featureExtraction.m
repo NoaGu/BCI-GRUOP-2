@@ -14,9 +14,11 @@ function [] = MI4_featureExtraction(recordingFolder)
 
 %% Load previous variables:
 load(strcat(recordingFolder,'\EEG_chans.mat'));                  % load the openBCI channel location
-load(strcat(recordingFolder,'\MIData.mat'));                     % load the EEG data
+load(strcat(recordingFolder,'\MIData.mat'));
+%EEG=permute(EEG,[3,1,2]);% load the EEG data
+%MIData=EEG;
 if size(MIData,2)>13
-    MIData(:,14:end,:)=[]
+    MIData(:,14:end,:)=[];
 end
 targetLabels = cell2mat(struct2cell(load(strcat(recordingFolder,'\trainingVec'))));
 
@@ -135,18 +137,28 @@ clear leftClassCSP rightClassCSP Wviz lambdaViz Aviz
 
 %% Spectral frequencies and times for bandpower features:
 % frequency bands
-bands{1} = [15.5,18.5];
-bands{2} = [8,10.5];
-bands{3} = [10,15.5];
-bands{4} = [17.5,20.5];
-bands{5} = [12.5,30];
+%bands{1} = [15.5,18.5];
+%bands{2} = [8,10.5];
+%bands{3} = [10,15.5];
+%bands{4} = [17.5,20.5];
+%bands{5} = [12.5,30];
+bands{1} = [12 ,15];
+bands{2} = [15 ,20];
+bands{3} = [15 ,20];
+bands{4} = [20,25];
+bands{5} = [25,30];
     
 % times of frequency band features
-times{1} = (1*Fs : 3*Fs);
-times{2} = (3*Fs : 4.5*Fs);
-times{3} = (4.25*Fs : size(MIData,3));
-times{4} = (2*Fs : 2.75*Fs);
-times{5} = (2.5*Fs : 4*Fs);
+%times{1} = (1*Fs : 3*Fs);
+%times{2} = (3*Fs : 4.5*Fs);
+%times{3} = (4.25*Fs : size(MIData,3));
+%times{4} = (2*Fs : 2.75*Fs);
+%times{5} = (2.5*Fs : 4*Fs);
+times{1}=(1 :1*Fs)
+times{2}=(1 :1*Fs)
+times{3}=(1.5*Fs :2.5*Fs)
+times{4}=(1.5*Fs :2.5*Fs)
+times{5}=(1.5*Fs :2.5*Fs)
 
 numSpectralFeatures = length(bands);                        % how many features exist overall 
 
@@ -263,8 +275,9 @@ MIFeatures = reshape(MIFeaturesLabel,trials,[]);
 MIFeatures = [CSPFeatures MIFeatures];              % add the CSP features to the overall matrix
 AllDataInFeatures = MIFeatures;
 save(strcat(recordingFolder,'\AllDataInFeatures.mat'),'AllDataInFeatures');
-
-testIdx = randperm(length(idleIdx),num4test);                       % picking test index randomly
+length_vec=[sum(targetLabels==1),sum(targetLabels==2),sum(targetLabels==3)]
+min_length=min(length_vec)
+testIdx = randperm(min_length,num4test);                       % picking test index randomly
 testIdx = [idleIdx(testIdx) leftIdx(testIdx) rightIdx(testIdx)];    % taking the test index from each class
 testIdx = sort(testIdx);                                            % sort the trials
 

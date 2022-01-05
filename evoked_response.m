@@ -8,6 +8,8 @@
 
 load('MIData.mat')
 load('trainingVec.mat')
+%EEG=permute(EEG,[3,1,2]);% load the EEG data
+%MIData=EEG;
 left_ind=find(trainingVec==1)
 
 left=MIData(left_ind,:,:);

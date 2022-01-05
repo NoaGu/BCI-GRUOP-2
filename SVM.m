@@ -1,5 +1,5 @@
 clear
-recordingFolder='C:/Recordings/Sub12'
+recordingFolder='C:/Recordings/Sub17'
 FeaturesTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\FeaturesTrainSelected.mat'))))   % features for train set
 LabelTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\LabelTrain'))));                % label vector for train set
 length(LabelTrain)
@@ -15,9 +15,10 @@ FeaturesTest=cell2mat(struct2cell(load(strcat(recordingFolder,'\FeaturesTest.mat
 figure()
 for i=1:length(LabelTrain)
  colors={'r','b','g'}
- scatter(FeaturesTrain(i,1),FeaturesTrain(i,2),colors{LabelTrain(i)})
+ scatter3(FeaturesTrain(i,1),FeaturesTrain(i,2),FeaturesTrain(i,3),colors{LabelTrain(i)})
  hold on
 end
+title('FeaturesTrain - 3 first Features')
 legend({'left','right','Idle'})
 X=pca(FeaturesTrain);
 FeaturesTrain_pca=FeaturesTrain*X;
@@ -27,7 +28,7 @@ for i=1:length(LabelTrain)
  scatter3(FeaturesTrain_pca(i,1),FeaturesTrain_pca(i,2),FeaturesTrain_pca(i,3),colors{LabelTrain(i)})
  hold on
 end
-legend({'left','right','Idle'})
+title('PCA')
 %%
 SVMModels = cell(3,1);
 classes = unique(LabelTrain);
@@ -35,11 +36,11 @@ rng(1); % For reproducibility
 
 for j = 1:numel(classes)
     indx = (LabelTrain==classes(j)); % Create binary classes for each classifier
-    %SVMModels{j} = fitcsvm(FeaturesTrain,indx,'ClassNames',[false true],'Standardize',true,...
-     %   'KernelFunction','rbf','BoxConstraint',1);
-     SVMModels{j} = fitcsvm(FeaturesTrain,indx,'ClassNames',[false true],'OptimizeHyperparameters','auto', ...
-    'HyperparameterOptimizationOptions',struct('AcquisitionFunctionName', ...
-    'expected-improvement-plus'))
+    SVMModels{j} = fitcsvm(FeaturesTrain,indx,'ClassNames',[false true],'Standardize',true,...
+        'KernelFunction','rbf','BoxConstraint',1);
+     %SVMModels{j} = fitcsvm(FeaturesTrain,indx,'ClassNames',[false true],'OptimizeHyperparameters','auto', ...
+    %'HyperparameterOptimizationOptions',struct('AcquisitionFunctionName', ...
+    %'expected-improvement-plus'))
 end
 %SVMModels is a 3-by-1 cell array, with each cell containing a ClassificationSVM classifier. For each cell, the positive class is setosa, versicolor, and virginica, respectively.
 
@@ -64,7 +65,7 @@ end
 acc=acc/N
 figure()
 cm_svm = confusionchart(LabelTest,maxScore);
-title('svm')
+title(['svm: acc=' num2str(acc)])
 %%
 Mdl = fitcnb(FeaturesTrain,LabelTrain)
 label = predict(Mdl,FeaturesTest)
@@ -77,7 +78,7 @@ end
 acc=acc/N
 figure()
 cm_nb = confusionchart(LabelTest,label);
-title('nb')
+title(['nb: acc=' num2str(acc)])
 %%
 tree = fitctree(FeaturesTrain,LabelTrain)
 label = predict(tree,FeaturesTest)
@@ -90,4 +91,4 @@ end
 acc=acc/N
 figure()
 cm_tree = confusionchart(LabelTest,label);
-title('tree')
+title(['tree: acc=' num2str(acc)])
