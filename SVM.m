@@ -1,5 +1,5 @@
 clear
-recordingFolder='C:/Recordings/Sub17'
+recordingFolder='C:/Recordings/Sub101'
 FeaturesTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\FeaturesTrainSelected.mat'))))   % features for train set
 LabelTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'\LabelTrain'))));                % label vector for train set
 length(LabelTrain)
@@ -29,10 +29,21 @@ for i=1:length(LabelTrain)
  hold on
 end
 title('PCA')
+load('AllDataInFeatures.mat')
+X=pca(AllDataInFeatures);
+AllDataInFeatures_pca=AllDataInFeatures*X;
+trainingVec=cell2mat(struct2cell(load(strcat('trainingVec.mat'))))
+figure()
+for i=1:length(LabelTrain)
+ colors={'r','b','g'}
+ scatter3(AllDataInFeatures_pca(i,1),AllDataInFeatures_pca(i,2),AllDataInFeatures_pca(i,3),colors{trainingVec(i)})
+ hold on
+end
+title('PCA-ALL')
 %%
 SVMModels = cell(3,1);
 classes = unique(LabelTrain);
-rng(1); % For reproducibility
+%rng(1); % For reproducibility
 
 for j = 1:numel(classes)
     indx = (LabelTrain==classes(j)); % Create binary classes for each classifier
@@ -92,3 +103,17 @@ acc=acc/N
 figure()
 cm_tree = confusionchart(LabelTest,label);
 title(['tree: acc=' num2str(acc)])
+%%
+ 
+ knn = fitcknn(FeaturesTrain,LabelTrain)
+label = predict(tree,FeaturesTest)
+acc=0
+for i=1:N
+    if label(i)==LabelTest(i)
+        acc=acc+1;
+    end
+end
+acc=acc/N
+figure()
+cm_tree = confusionchart(LabelTest,label);
+title(['knn: acc=' num2str(acc)])

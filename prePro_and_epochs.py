@@ -44,7 +44,7 @@ def set_reference_digitization(raw):
     raw.set_montage(ten_twenty_montage)
     return raw
 
-fname = 'C:\Recordings\Sub17\EEG.xdf'
+fname = 'C:\Recordings\Sub101\EEG.xdf'
 streams, header = pyxdf.load_xdf(fname)
 #streams[0]=streams1[1]
 #streams[1]=streams1[0]
@@ -55,7 +55,7 @@ for i in np.arange(len(streams[1]["time_stamps"])):
     events[i,0]=c[0]
 events[:,2]=np.transpose(streams[1]["time_series"])
 
-event_id={'left':1,'right':2,'idle':3}
+event_id={'left':1,'right':2}
 #events=mne.pick_events([1.,2.,3.])
 data = np.transpose(streams[0]["time_series"][:,0:13])
 chs=['C3','C4','Cz','FC1',
@@ -67,8 +67,9 @@ info = mne.create_info(chs, sfreq, 'eeg')
 raw = mne.io.RawArray(data,info)
 raw=set_reference_digitization(raw)
 #raw.set_montage()
-#anno=mne.annotations_from_events(events, sfreq)
-#raw.set_annotations(anno)
+#%%
+anno=mne.annotations_from_events(events, sfreq)
+raw.set_annotations(anno)
 #%%
 raw.plot()
         #%%
@@ -79,13 +80,13 @@ raw=raw.filter(1.,40.)
 #%%
 events=events.astype(int)
 epochs=mne.Epochs(raw,events,event_id=event_id,tmin=-1.,tmax=2.5,baseline=None)
-epochs.plot()
+#epochs.plot()
 #%%
 ica = ICA(n_components=12, max_iter='auto', random_state=97)
 ica.fit(epochs)
 #ica
-#ica.plot_components()
-#ica.plot_properties(epochs,np.arange(12))
+ica.plot_components()
+#ica.plot_properties(epochs,9)
 #%%
 ica.exclude = [] 
 
@@ -93,21 +94,22 @@ ica.exclude = []
 
 #%%
 evoked_left=epochs['left'].average()
-evoked_left.plot(titles='left',spatial_colors=True)
+evoked_left.plot(titles='left',spatial_colors=True, gfp= True)
 evoked_right=epochs['right'].average()
-evoked_right.plot(titles='right',spatial_colors=True)
-evoked_right=epochs['idle'].average()
-evoked_right.plot(titles='idle',spatial_colors=True)
+evoked_right.plot(titles='right',spatial_colors=True,gfp= True)
+#evoked_idle=epochs['idle'].average()
+#evoked_idle.plot(titles='idle',spatial_colors=True,gfp= True)
 #%%
 #evoked_right.plot_topomap([0,0.1,0.5,1.,1.5,2.,3.,4.])
 #evoked_left.plot_topomap([0,0.1,0.5,1.,1.5,2.,3.,4.])
+#evoked_idle.plot_topomap([0,0.1,0.5,1.,1.5,2.,3.,4.])
 #%%
 tfr_freqs = np.arange(5., 40., 3.)
 window_size = 0.3
 #tfr_freqs = np.logspace(0.7, 2.2, 25)
 tfr_cycles = tfr_freqs * window_size
 freq_baseline = (-0.5,0.)
-condition=['left','right','idle']
+condition=['left','right']
 for i in np.arange(len(condition)):
  this_epochs = epochs[condition[i]]
  this_epochs.apply_baseline((-0.5,0))
@@ -123,7 +125,7 @@ n_splits = 5  # for cross-validation, 5 is better, here we use 3 for speed
 cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
 # Classification & time-frequency parameters
-tmin, tmax = 0.1, 2.5
+tmin, tmax = 0.1, 5
 n_cycles = 3.  # how many complete cycles: used to define window size
 min_freq = 10.
 max_freq = 30.

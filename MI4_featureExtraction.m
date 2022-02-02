@@ -16,7 +16,7 @@ function [] = MI4_featureExtraction(recordingFolder)
 load(strcat(recordingFolder,'\EEG_chans.mat'));                  % load the openBCI channel location
 load(strcat(recordingFolder,'\MIData.mat'));
 %EEG=permute(EEG,[3,1,2]);% load the EEG data
-%MIData=EEG;
+%MIData=MIDataAll;
 if size(MIData,2)>13
     MIData(:,14:end,:)=[];
 end
@@ -31,7 +31,7 @@ trials = size(MIData,1);                                        % get number of 
 chanLocs = reshape(EEG_chans',[1, R*C]);                        % reshape into a vector in the correct order
 numChans = size(MIData,2);                                      % get number of channels from main data variable
 
-%% Visual Feature Selection: Power Spectrum
+% Visual Feature Selection: Power Spectrum
 % init cells for  Power Spectrum display
 motorDataChan = {};
 welch = {};
@@ -71,7 +71,7 @@ for chan = 1:numChans
     end
 end
 % manually plot (surf) mean spectrogram for channels C4 + C3:
-mySpectrogram(t,spectFreq,totalSpect,numClasses,vizChans,EEG_chans)
+%mySpectrogram(t,spectFreq,totalSpect,numClasses,vizChans,EEG_chans)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,15 +107,15 @@ end
 
 % visualize the CSP data:
 vizTrial = 5;      % cherry-picked!
-figure;
-subplot(1,2,1)      % show a single trial before CSP seperation
-scatter3(squeeze(leftClass(vizTrial,1,:)),squeeze(leftClass(vizTrial,2,:)),squeeze(leftClass(vizTrial,3,:)),'b'); hold on
-scatter3(squeeze(rightClass(vizTrial,1,:)),squeeze(rightClass(vizTrial,2,:)),squeeze(rightClass(vizTrial,3,:)),'g');
-title('Before CSP')
-legend('Left','Right')
-xlabel('channel 1')
-ylabel('channel 2')
-zlabel('channel 3')
+%figure;
+%subplot(1,2,1)      % show a single trial before CSP seperation
+%scatter3(squeeze(leftClass(vizTrial,1,:)),squeeze(leftClass(vizTrial,2,:)),squeeze(leftClass(vizTrial,3,:)),'b'); hold on
+%scatter3(squeeze(rightClass(vizTrial,1,:)),squeeze(rightClass(vizTrial,2,:)),squeeze(rightClass(vizTrial,3,:)),'g');
+%title('Before CSP')
+%legend('Left','Right')
+%xlabel('channel 1')
+%ylabel('channel 2')
+%zlabel('channel 3')
 % find mixing matrix (wAll) for all trials:
 [wTrain, lambda, A] = csp(overallLeft, overallRight);
 % find mixing matrix (wViz) just for visualization trial:
@@ -124,41 +124,52 @@ zlabel('channel 3')
 leftClassCSP = (wViz'*squeeze(leftClass(vizTrial,:,:)));
 rightClassCSP = (wViz'*squeeze(rightClass(vizTrial,:,:)));
 
-subplot(1,2,2)      % show a single trial after CSP seperation
-scatter3(squeeze(leftClassCSP(1,:)),squeeze(leftClassCSP(2,:)),squeeze(leftClassCSP(3,:)),'b'); hold on
-scatter3(squeeze(rightClassCSP(1,:)),squeeze(rightClassCSP(2,:)),squeeze(rightClassCSP(3,:)),'g');
-title('After CSP')
-legend('Left','Right')
-xlabel('CSP dimension 1')
-ylabel('CSP dimension 2')
-zlabel('CSP dimension 3')
+% subplot(1,2,2)      % show a single trial after CSP seperation
+% scatter3(squeeze(leftClassCSP(1,:)),squeeze(leftClassCSP(2,:)),squeeze(leftClassCSP(3,:)),'b'); hold on
+% scatter3(squeeze(rightClassCSP(1,:)),squeeze(rightClassCSP(2,:)),squeeze(rightClassCSP(3,:)),'g');
+% title('After CSP')
+% legend('Left','Right')
+% xlabel('CSP dimension 1')
+% ylabel('CSP dimension 2')
+% zlabel('CSP dimension 3')
 
 clear leftClassCSP rightClassCSP Wviz lambdaViz Aviz
 
 %% Spectral frequencies and times for bandpower features:
 % frequency bands
-%bands{1} = [15.5,18.5];
-%bands{2} = [8,10.5];
-%bands{3} = [10,15.5];
-%bands{4} = [17.5,20.5];
-%bands{5} = [12.5,30];
-bands{1} = [12 ,15];
-bands{2} = [15 ,20];
-bands{3} = [15 ,20];
-bands{4} = [20,25];
+% bands{1} = [15.5,18.5];
+% bands{2} = [8,10.5];
+% bands{3} = [10,15.5];
+% bands{4} = [17.5,20.5];
+% bands{5} = [12.5,30];
+% %times of frequency band features
+% times{1} = (1*Fs : 2.5*Fs);
+% times{2} = (1*Fs : 2.5*Fs);
+% times{3} = (2.25*Fs : size(MIData,3));
+% times{4} = (2*Fs : 2.5*Fs);
+% times{5} = (1.5*Fs : 2.5*Fs);
+%sub17
+bands{1} = [15 ,20];
+bands{2} = [20 ,25];
+bands{3} = [25 ,30];
+bands{4} = [12,15];
 bands{5} = [25,30];
-    
-% times of frequency band features
-%times{1} = (1*Fs : 3*Fs);
-%times{2} = (3*Fs : 4.5*Fs);
-%times{3} = (4.25*Fs : size(MIData,3));
-%times{4} = (2*Fs : 2.75*Fs);
-%times{5} = (2.5*Fs : 4*Fs);
-times{1}=(1 :1*Fs)
-times{2}=(1 :1*Fs)
-times{3}=(1.5*Fs :2.5*Fs)
-times{4}=(1.5*Fs :2.5*Fs)
-times{5}=(1.5*Fs :2.5*Fs)
+times{1}=(1 :1.5*Fs)
+times{2}=(1 :1.5*Fs)
+times{3}=(1.5*Fs :3*Fs)
+times{4}=(1.5*Fs :3*Fs)
+times{5}=(1.5*Fs :3*Fs)
+%sub14
+%bands{1} = [12 ,15];
+%bands{2} = [20,25];
+%bands{3} = [20,25];
+%bands{4} = [27,32];
+%bands{5} = [15,20];
+%times{1}=(3.5*Fs :4.5*Fs)
+%times{2}=(1 :1*Fs)
+%times{3}=(1.*Fs :2*Fs)
+%times{4}=(1*Fs :2*Fs)
+%times{5}=(1*Fs :2*Fs)
 
 numSpectralFeatures = length(bands);                        % how many features exist overall 
 
@@ -268,17 +279,17 @@ for trial = 1:trials                                % run over all the trials
 end
 
 % z-score all the features
-%MIFeaturesLabel = zscore(MIFeaturesLabel);
+MIFeaturesLabel = zscore(MIFeaturesLabel);
 
 % Reshape into 2-D matrix
 MIFeatures = reshape(MIFeaturesLabel,trials,[]);
 MIFeatures = [CSPFeatures MIFeatures];              % add the CSP features to the overall matrix
 AllDataInFeatures = MIFeatures;
 save(strcat(recordingFolder,'\AllDataInFeatures.mat'),'AllDataInFeatures');
-length_vec=[sum(targetLabels==1),sum(targetLabels==2),sum(targetLabels==3)]
+length_vec=[sum(targetLabels==1),sum(targetLabels==2)]
 min_length=min(length_vec)
 testIdx = randperm(min_length,num4test);                       % picking test index randomly
-testIdx = [idleIdx(testIdx) leftIdx(testIdx) rightIdx(testIdx)];    % taking the test index from each class
+testIdx = [ leftIdx(testIdx) rightIdx(testIdx)];    % taking the test index from each class
 testIdx = sort(testIdx);                                            % sort the trials
 
 % split test data
