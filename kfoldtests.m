@@ -1,5 +1,5 @@
 clear
-recordingFolder='/Users/wrystrn/Documents/BCI4ALS/recordings/sub20'
+recordingFolder='C:\Recordings\Sub20'
 FeaturesTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'/FeaturesTrainSelected.mat'))))   % features for train set
 LabelTrain = cell2mat(struct2cell(load(strcat(recordingFolder,'/LabelTrain'))));                % label vector for train set
 length(LabelTrain)
@@ -30,11 +30,16 @@ cvtrainError3 = kfoldLoss(cvMdl3)
 Mdl1 = fitcecoc(tblTrain,'Y');
 cvMdl1 = crossval(Mdl1); % Performs stratified 10-fold cross-validation
 cvtrainError1 = kfoldLoss(cvMdl1)
-prediction = kfoldPredict(cvMdl1);
+%prediction = kfoldPredict(cvMdl1);
+Mdl4 = fitcknn(tblTrain,'Y');
+cvMdl4 = crossval(Mdl4); % Performs stratified 10-fold cross-validation
+cvtrainError4 = kfoldLoss(cvMdl1)
+%%
+prediction = kfoldPredict(cvMdl3);
 
 figure()
 cm_ecoc = confusionchart(tblTrain.Y, prediction)
-title(['SVM: train acc=' num2str(1-cvtrainError1)])
+title(['KNN: train acc=' num2str(1-cvtrainError1)])
 
 testError = loss(Mdl1,tblNew,'Y');
 testAccuracy = 1-testError
@@ -45,4 +50,6 @@ testprediction = predict(Mdl1, tblTest);
 
 figure()
 cmt_ecoc = confusionchart(tblNew.Y, testprediction)
-title(['SVM: test acc=' num2str(1-cvtrainError1)])
+title(['SVM: test acc=' num2str(testAccuracy)])
+%%
+save('cvMdl3','cvMdl3')
