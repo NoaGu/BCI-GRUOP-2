@@ -30,7 +30,7 @@ readyLength = 0;                        % time "ready" on screen
 nextLength = 2;                         % time "next" on screen
 
 % Define length and classes
-numTrials = 30;                         % set number of training trials per class (the more classes, the more trials per class)
+numTrials = 20;                         % set number of training trials per class (the more classes, the more trials per class)
 numClasses = 2;                         % set number of possible classes
 
 % Set markers / triggers names
@@ -75,12 +75,16 @@ hAx.YLim = [0, 1];
 hold on
 
 %% Prepare Visual Cues - read the right/left/idle images
-trainingImage{3} = imread('square.jpeg','jpeg');
-trainingImage{1} = imread('arrow_left.jpeg','jpeg');
-trainingImage{2} = imread('arrow_right.jpeg','jpeg');
+%trainingImage{3} = imread('square.jpeg','jpeg');
+%trainingImage{1} = imread('arrow_left.jpeg','jpeg');
+%trainingImage{2} = imread('arrow_right.jpeg','jpeg');
+trainingImage{1} = imread('hand_left.png','png');
+trainingImage{3} = imread('leg_left.png','png');
+trainingImage{2} = imread('hand_right.png','png');
+trainingImage{4} = imread('leg_right.png','png');
  %%
  %define diffrent rates
- rate=[15,3]
+ rate=[15,3,15,3]
 %% Prepare Training Vector
 trainingVec = prepareTraining(numTrials,numClasses);    % vector with the conditions for each trial
 save(strcat(recordingFolder,'trainingVec.mat'),'trainingVec');
@@ -101,7 +105,7 @@ for trial = 1:totalTrials
     % Cue before ready
     for i= 1:rate(currentClass)
     image(flip(trainingImage{currentClass}, 1), 'XData', [0.25, 0.75],...
-        'YData', [0.25, 0.75 * ...
+        'YData', [0.25, 0.50 * ...
         size(trainingImage{currentClass},1)./ size(trainingImage{currentClass},2)])
     pause(0.5*(cueLength/rate(currentClass)));                           % Pause for cue length
     cla                                         % Clear axis

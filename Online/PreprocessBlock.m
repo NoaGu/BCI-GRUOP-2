@@ -1,4 +1,4 @@
-function [] = PreprocessBlock(block, Fs, recordingFolder)
+function [] = PreprocessBlock(block,block_num,currentClass, Fs, recordingFolder)
 %% Online Preprocessing
 % Preprocessing using EEGLAB function. Assumes Wearable Sensing DSI-24 EEG
 % The function preprocess raw data chunk as in the offline phase.
@@ -15,7 +15,7 @@ plotLowPassHighPassFreqResp = 0;
 plotScroll = 0;
 plotSpectraMaps = 0;
 useLowPassHighPass = 1;
-useNotchHighPass = 1;
+useNotchHighPass = 0;
 resampleFsHz = 120;
 automaticNoiseRejection = 0;
 automaticAverageReReference = 0;
@@ -112,8 +112,18 @@ MIData = [];
 for channel=1:numChans
     MIData(1, channel ,:) = EEG_data(channel, :);    
 end
-
+if block_num>1
+load(strcat(recordingFolder,'\','cleand_sub.mat'))
+cleand_sub=[cleand_sub squeeze(MIData)];
+save(strcat(recordingFolder,'\','cleand_sub.mat'),'cleand_sub');
+end
+if block_num==1
+    cleand_sub=squeeze(MIData)
+    save(strcat(recordingFolder,'\','cleand_sub.mat'),'cleand_sub');
+end
 % Save the data into .mat variables on the computer
 save(strcat(recordingFolder,'\','MIData.mat'),'MIData');
+
+
 save(strcat(recordingFolder,'\','EEG_chans.mat'),'EEG_chans');
 end

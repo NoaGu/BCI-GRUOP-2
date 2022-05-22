@@ -1,4 +1,4 @@
-function MI_Online_Learning(recordingFolder)
+function final_vote=MI_Online_Learning(recordingFolder)
 %% MI Online Scaffolding
 % This code creates an online EEG buffer which utilizes the model trained
 % offline, and corresponding conditions, to classify between the possible labels.
@@ -34,21 +34,38 @@ function MI_Online_Learning(recordingFolder)
 %% Addpath for relevant folders - original recording folder and LSL folders
 addpath('YOUR RECORDING FOLDER PATH HERE');
 addpath('YOUR LSL FOLDER PATH HERE');
+%%
+%% Lab Streaming Layer Init
+disp('Loading the Lab Streaming Layer library...');
+% Init LSL parameters
+lib = lsl_loadlib();                    % load the LSL library
+disp('Opening Marker Stream...');
+% Define stream parameters
+info = lsl_streaminfo(lib,'MarkerStream','Markers',1,0,'cf_string','myuniquesourceid23443');
+outletStream = lsl_outlet(info);        % create an outlet stream using the parameters above
+disp('Open Lab Recorder & check for MarkerStream and EEG stream, start recording, return here and hit any key to continue.');
+pause;                                  % wait for experimenter to press a key
+
     
 %% Set params - %add to different function/file returns param.struct
 params = set_params();
-orgFolder='C:\Recordings\sub20'
+orgFolder='C:\Recordings\sub400'
+feedbackFlag= 1
+load([orgFolder,'\Mdl3.mat'])
+block_num=1
 %load('releventFeatures.mat');                       % load best features from extraction & selection stage
 %load('trainedModel.mat');                           % load model weights from offline section
 % Load cue images
 images{1} = imread(params.leftImageName, 'jpeg');
 images{3} = imread(params.squareImageName, 'jpeg');
 images{2} = imread(params.rightImageName, 'jpeg');
-numTrials=10
-numConditions=3
+numTrials=25
+numConditions=2
 cueVec = prepareTraining(numTrials,numConditions);  % prepare the cue vector
-bufferLength=0.5
+save('C:\Recordings\sub0traningVec','cueVec')
+bufferLength=5
 trialTime=5
+
 Fs=125
 %% Lab Streaming Layer Init
 disp('Loading the Lab Streaming Layer library...');
@@ -98,7 +115,7 @@ hAx.YLim = [0, 1];
 hold on
 
 %% This is the main online script
-
+num_of_worng=0
 for trial = 1:numTrials
     decCount = 0;
     %command_Outlet.push_sample(params.startTrialMarker)
@@ -112,9 +129,9 @@ for trial = 1:numTrials
     pause(params.cueLength);                           % Pause for cue length
     cla                                         % Clear axis
     % ready cue
-    text(0.5,0.5 , 'Ready',...
-        'HorizontalAlignment', 'Center', 'Color', 'white', 'FontSize', 40);        
-    pause(params.readyLength)
+    outletStream.push_sample(1111)
+    outletStream.push_sample(currentClass)
+    %pause(trialLength)
     
     trialStart = tic;
     while toc(trialStart) < trialTime
@@ -138,30 +155,50 @@ for trial = 1:numTrials
         
         % Check if buffer size exceeds the buffer length
         if (size(myBuffer,2)>(bufferLength*Fs))
+            print('size myBuffer')
+            size(myBuffer)
             decCount = decCount + 1;            % decision counter
             block = [myBuffer];                 % move data to a "block" variable
-            
+            myBuffer=[]
             % Pre-process the data
-            PreprocessBlock(block, Fs, recordingFolder);
+            PreprocessBlock(block,block_num,currentClass, Fs, recordingFolder);
+            block_num=block_num+1;
             % Extract features from the buffered block:
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %%%% Add your feature extraction function from offline stage %%%%%%
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
-            EEG_Features = MI4_featureExtraction_online2(recordingFolder,'C:\Recordings\sub20');
+            EEG_Features = MI4_featureExtraction_online2(recordingFolder,orgFolder);
             
             % Predict using previously learned model:
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %%%%%% Use whatever classfication method used in offline MI %%%%%%%
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            load([orgFolder,'cvMdl3.mat'])
-            myPrediction(decCount) =  predict(cvMdl3,EEG_Features );
-            
+            load([orgFolder,'\Mdl3.mat'])
+           [ myPrediction(decCount),score{decCount}] =  predict(Mdl4,EEG_Features );
+           %disp('score')
+            %score{decCount}
+            rand_num=randi(4)
+            if rand_num<4
+                myPrediction(decCount)=currentClass
+            else
+                if currentClass==1
+                myPrediction(decCount)=2
+                else
+                     myPrediction(decCount)=1
+                end
+            end
             if feedbackFlag
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 % write a function that plots estimate on some type of graph: %
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                plotEstimate(myPrediction); hold on
+                if myPrediction(decCount)==currentClass
+                    trig=3
+                else
+                    trig=4
+                end
+                outletStream.push_sample(trig)
+                plotEstimate(myPrediction(decCount),max(score{decCount})); hold on
             end
             fprintf(strcat('Iteration:', num2str(iteration)));
             fprintf(strcat('The estimated target is:', num2str(myPrediction(decCount))));
@@ -172,27 +209,35 @@ for trial = 1:numTrials
             %       this could look like a threshold crossing feedback       %%
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             x=find(myPrediction==1),find(myPrediction==2)
-            [final_vote] = find(max(x));
+            [final_vote] = find(max(x))
             
             % Update classifier - this should be done very gently! 
+            %num_of_worng=0
             if final_vote ~= (cueVec(trial)-numConditions-1)
                 wrongClass(decCount,:,:) = EEG_Features;
                 wrongClassLabel(decCount) = cueVec(trial);
+                num_of_worng=num_of_worng+1
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                 %%% Write a function that updates the trained model %%%%%%%
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                trainedModel = OnlineLearn(trainedModel,EEG_Features,currentClass);
+                %trainedModel = OnlineLearn(trainedModel,EEG_Features,currentClass);
             else
                 correctClass(decCount,:,:) = EEG_Features;
                 correctLabel(decCount) = cueVec(trial);
                 % Send command through LSL:
-                command_Outlet.push_sample(final_vote);
+                %command_Outlet.push_sample(final_vote);
             end
             
             % clear buffer
             myBuffer = [];
         end
     end
+    if mod(trial,5)==0
+        %text(0.5,0.5 , 'Updating model',...
+        %'HorizontalAlignment', 'Center', 'Color', 'white', 'FontSize', 40); 
+        %Mdl3 = OnlineLearn(recordingFolder,orgFolder,trialTime,trial,cueVec);
+    end
 end
+
 disp('Finished')
-command_Outlet.pushSample(params.endTrial);
+%command_Outlet.pushSample(params.endTrial);

@@ -10,7 +10,7 @@ function  MI3_segmentation(recordingFolder)
 
 %% Parameters and previous variables:
 Fs = 125;               % openBCI sample rate
-trialLength = 3;        % needs to be equal to offline trainig parameters
+trialLength = 2.5;        % needs to be equal to offline trainig parameters
 load(strcat(recordingFolder,'\cleaned_sub.mat'));               % load the filtered EEG data in .mat format
 load(strcat(recordingFolder,'\trainingVec.mat'));               % load the training vector (which target at which trial)
 load(strcat(recordingFolder,'\EEG_chans.mat'));                 % load the EEG channel locations
@@ -18,20 +18,22 @@ numChans = length(EEG_chans);                                   % how many chans
 load(strcat(recordingFolder,'\EEG_events.mat'));                % load the EEG event markers
 
 %% Extract trials through the events
-trials1 = length(trainingVec)
+trials1 = length(trainingVec);
 % derive number of trials from training label vector
 events = struct('type', {EEG_event(1:end).type})
 %ind=find(strcmp(events.type,'000.000000000000'))
-for i = 2:length(events)
-    if strcmp('1111.000000000000',events(i).type)               % find trial start marker
+for i = 1:length(events)
+    if strcmp('1001.000000000000',events(i).type)               % find trial start marker
         marker1Index(i) = 1     ;                              % index markers
+    elseif events(i).type==1001
+            marker1Index(i) = 1     ; 
     else
         marker1Index(i) = 0;
     end
 end
 mark1Index = find(marker1Index) % index of each trial start
 trials = length(mark1Index)                                   % derive number of trials from start markers
-
+%trials=40
 % Check for consistancy across events & trials
 %if trials ~= trials1
  %   disp('!!!! Some form of mis-match between number of recorded and planned trials.')

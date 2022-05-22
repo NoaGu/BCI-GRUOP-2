@@ -20,8 +20,15 @@ load(strcat(recordingFolder,'\MIData.mat'));
 if size(MIData,2)>13
     MIData(:,14:end,:)=[];
 end
-targetLabels = cell2mat(struct2cell(load(strcat(recordingFolder,'\trainingVec'))));
 
+targetLabels = cell2mat(struct2cell(load(strcat(recordingFolder,'\trainingVec'))));
+%
+%ind=find(targetLabels==2)
+%ind_to_del=ind(1:2:40)
+
+%MIData(ind_to_del,:,:)=[]
+%targetLabels(ind_to_del)=[]
+%
 Features2Select = 10;                                           % number of featuers for feature selection
 num4test = 5;                                                   % define how many test trials after feature extraction
 numClasses = length(unique(targetLabels));                      % set number of possible targets (classes)
@@ -29,7 +36,7 @@ Fs = 125;                                                       % openBCI Cyton+
 trials = size(MIData,1);                                        % get number of trials from main data variable
 [R, C] = size(EEG_chans);                                       % get EEG_chans (char matrix) size - rows and columns
 chanLocs = reshape(EEG_chans',[1, R*C]);                        % reshape into a vector in the correct order
-numChans = size(MIData,2);                                      % get number of channels from main data variable
+numChans = 11 %size(MIData,2);                                      % get number of channels from main data variable
 
 % Visual Feature Selection: Power Spectrum
 % init cells for  Power Spectrum display
@@ -42,24 +49,27 @@ freq.Jump = 1;                              % SET the freq resolution
 f = freq.low:freq.Jump:freq.high;           % frequency vector
 window = 40;                                % INSERT sample size window for pwelch
 noverlap = 20;                              % INSERT number of sample overlaps for pwelch
-vizChans = [1,2];                           % INSERT which 2 channels you want to compare
+vizChans = [10];                           % INSERT which 2 channels you want to compare
 
 % create power spectrum figure:
-f1 = figure('name','PSD','NumberTitle','off');
-sgtitle(['Power Spectrum For The Choosen Electrode']);
+%f1 = figure('name','PSD','NumberTitle','off');
+%sgtitle(['Power Spectrum For The Choosen Electrode']);
 % compute power Spectrum per electrode in each class
 psd = nan(numChans,numClasses,2,1000); % init psd matrix
 for chan = 1:numChans
     motorDataChan{chan} = squeeze(MIData(:,chan,:))';                   % convert the data to a 2D matrix fillers by channel
     nfft = 2^nextpow2(size(motorDataChan{chan},1));                     % take the next power of 2 length of the specific trial length
     welch{chan} = pwelch(motorDataChan{chan},window, noverlap, f, Fs);  % calculate the pwelch for each electrode
-    figure(f1);
-    subplot(numChans,1,chan)
+    size(welch{chan})
+    %welch{chan}=welch{chan}'
+    %figure(f1);
+    %subplot(numChans,1,chan)
+    size(motorDataChan)
     for class = 1:numClasses
         idxTarget{class} = find(targetLabels == class);                 % find the target index
-        plot(f, log10(mean(welch{chan}(:,idxTarget{class}), 2)));       % ploting the mean power spectrum in dB by each channel & class
-        hold on
-        ylabel([EEG_chans(chan,:)]);                                    % add name of electrode
+        %plot(f, log10(mean(welch{chan}(:,idxTarget{class}), 2)));       % ploting the mean power spectrum in dB by each channel & class
+        %hold on
+        %ylabel([EEG_chans(chan,:)]);                                    % add name of electrode
         for trial = 1:length(idxTarget{class})                          % run over all concurrent class trials
             [s,spectFreq,t,psd] = spectrogram(motorDataChan{chan}(:,idxTarget{class}(trial)),window,noverlap,nfft,Fs);  % compute spectrogram on specific channel
             multiPSD(trial,:,:) = psd;
@@ -71,7 +81,7 @@ for chan = 1:numChans
     end
 end
 % manually plot (surf) mean spectrogram for channels C4 + C3:
-%mySpectrogram(t,spectFreq,totalSpect,numClasses,vizChans,EEG_chans)
+mySpectrogram(t,spectFreq,totalSpect,numClasses,vizChans,EEG_chans)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -95,6 +105,7 @@ overallRight = [];
 idleIdx = find(targetLabels == 3);                  % find idle trials
 leftIdx = find(targetLabels == 1);                  % find left trials
 rightIdx = find(targetLabels == 2);                 % find right trials
+left2Idx = find(targetLabels == 4); 
 rightIndices = rightIdx(randperm(length(rightIdx)));% randomize right indexs
 leftIndices  = leftIdx(randperm(length(leftIdx)));   % randomize left indexs
 idleIndices  = idleIdx(randperm(length(idleIdx)));   % randomize idle indexs
@@ -137,28 +148,28 @@ clear leftClassCSP rightClassCSP Wviz lambdaViz Aviz
 
 %% Spectral frequencies and times for bandpower features:
 % frequency bands
-% bands{1} = [15.5,18.5];
-% bands{2} = [8,10.5];
-% bands{3} = [10,15.5];
-% bands{4} = [17.5,20.5];
-% bands{5} = [12.5,30];
+ bands{1} = [15.5,18.5];
+ bands{2} = [8,10.5];
+ bands{3} = [10,15.5];
+ bands{4} = [17.5,20.5];
+ bands{5} = [12.5,30];
 % %times of frequency band features
-% times{1} = (1*Fs : 2.5*Fs);
-% times{2} = (1*Fs : 2.5*Fs);
-% times{3} = (2.25*Fs : size(MIData,3));
-% times{4} = (2*Fs : 2.5*Fs);
-% times{5} = (1.5*Fs : 2.5*Fs);
+ times{1} = (1*Fs : 2.5*Fs);
+ times{2} = (1*Fs : 2.5*Fs);
+ times{3} = (2.25*Fs : size(MIData,3));
+ times{4} = (2*Fs : 2.5*Fs);
+ times{5} = (1.5*Fs : 2.5*Fs);
 %sub17
-bands{1} = [15 ,20];
-bands{2} = [20 ,25];
-bands{3} = [25 ,30];
-bands{4} = [12,15];
-bands{5} = [25,30];
-times{1}=(1 :1.5*Fs)
-times{2}=(1 :1.5*Fs)
-times{3}=(1.5*Fs :3*Fs)
-times{4}=(1.5*Fs :3*Fs)
-times{5}=(1.5*Fs :3*Fs)
+%bands{1} = [15 ,20];
+% bands{2} = [20 ,25];
+% bands{3} = [5 ,15];
+% bands{4} = [5,12];
+% bands{5} = [25,30];
+% times{1}=(1 :1.5*Fs);
+% times{2}=(1 :1.5*Fs);
+% times{3}=(1 :2.5*Fs);
+% times{4}=(1 :1.5*Fs);
+% times{5}=(1.5*Fs :2.5*Fs);
 %sub14
 %bands{1} = [12 ,15];
 %bands{2} = [20,25];
@@ -301,7 +312,10 @@ FeaturesTrain = MIFeatures;
 FeaturesTrain (testIdx ,:,:) = [];          % delete the test trials from the features matrix, and keep only the train trials
 LabelTrain = targetLabels;
 LabelTrain(testIdx) = [];                   % delete the test trials from the labels matrix, and keep only the train labels
-
+disp('FeaturesTrain')
+size(FeaturesTrain)
+disp('labelTrain')
+size(LabelTrain)
 %% Feature Selection (using neighborhood component analysis)
 class = fscnca(FeaturesTrain,LabelTrain);   % feature selection
 % sorting the weights in desending order and keeping the indexs
@@ -311,32 +325,33 @@ SelectedIdx = selected(1:Features2Select);
 FeaturesTrainSelected = FeaturesTrain(:,SelectedIdx);       % updating the matrix feature
 FeaturesTest = FeaturesTest(:,SelectedIdx);                 % updating the matrix feature
 %% Matrix visualization 
-figure;
+%figure;
 num_channels = 13;
 num_features_per_channel = 14;
 % weightMatrix = zeros(num_channels, num_features_per_channel);
-weightMatrix = reshape(class.FeatureWeights(4:end), num_features_per_channel, num_channels).';
+%weightMatrix = reshape(class.FeatureWeights(4:end), num_features_per_channel, num_channels).';
 features_headers = {'15.5-18.5 band', '8-10.5 band', '10-15.5 band', '17.5-20.5 band', ...
     '12.5-30 band', 'Root', 'Moment', 'Edge', ...
     'Entropy', 'Slope', 'Intercept', 'Mean freq', 'Obw', 'Powerbw'};
 channel_names = {'C03','C04','C0Z','FC1',...
     'FC2','FC5','F06','CP1', 'CP2',...
     'CP5','CP6','O01','O02'};
-imagesc(weightMatrix);
-xticks([1:14])
-yticks([1:13])
-xticklabels(features_headers)
-xtickangle(70)
-yticklabels(channel_names)
-title('Feature matrix visualization')
-% Set up where it will show x, y, and value in status line.
-impixelinfo;
+% figure()
+% imagesc(weightMatrix);
+% xticks([1:14])
+% yticks([1:13])
+% xticklabels(features_headers)
+% xtickangle(70)
+% yticklabels(channel_names)
+% title('Feature matrix visualization')
+% % Set up where it will show x, y, and value in status line.
+% impixelinfo;
 % Get the current colormap
-cmap = colormap;
-% saving
+%cmap = colormap;
+%saving
 figure()
 for i=1:length(LabelTrain)
- colors={'r','b','g'}
+ colors={'r','b','g','k'};
  scatter(FeaturesTrain(i,1),FeaturesTrain(i,2),colors{LabelTrain(i)})
  hold on
 end
@@ -345,7 +360,7 @@ X=pca(AllDataInFeatures);
 FeaturesTrain_pca=FeaturesTrain*X;
 figure()
 for i=1:length(LabelTrain)
- colors={'r','b','g'}
+ colors={'r','b','g','k'};
  scatter3(FeaturesTrain_pca(i,1),FeaturesTrain_pca(i,2),FeaturesTrain_pca(i,3),colors{LabelTrain(i)})
  hold on
 end

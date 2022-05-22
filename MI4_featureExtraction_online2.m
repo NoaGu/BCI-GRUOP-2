@@ -50,7 +50,8 @@ psd = nan(numChans,numClasses,2,1000); % init psd matrix
 for chan = 1:numChans
     motorDataChan{chan} = squeeze(MIData(:,chan,:))';                   % convert the data to a 2D matrix fillers by channel
     nfft = 2^nextpow2(size(motorDataChan{chan},1));                     % take the next power of 2 length of the specific trial length
-    welch{chan} = pwelch(motorDataChan{chan},window, noverlap, f, Fs);  % calculate the pwelch for each electrode
+    welch{chan} = pwelch(motorDataChan{chan},window, noverlap, f, Fs)';  % calculate the pwelch for each electrode
+    
     %figure(f1);
     %subplot(numChans,1,chan)
     %for class = 1:numClasses
@@ -149,14 +150,14 @@ vizTrial = 5;      % cherry-picked!
 %sub17
 bands{1} = [15 ,20];
 bands{2} = [20 ,25];
-bands{3} = [25 ,30];
-bands{4} = [12,15];
+bands{3} = [5 ,15];
+bands{4} = [5,12];
 bands{5} = [25,30];
-times{1}=(1 :1.5*Fs)
-times{2}=(1 :1.5*Fs)
-times{3}=(1.5*Fs :3*Fs)
-times{4}=(1.5*Fs :3*Fs)
-times{5}=(1.5*Fs :3*Fs)
+times{1}=(1 :1.5*Fs);
+times{2}=(1 :1.5*Fs);
+times{3}=(1 :2.5*Fs);
+times{4}=(1 :1.5*Fs);
+times{5}=(1.5*Fs :2.5*Fs);
 %sub14
 %bands{1} = [12 ,15];
 %bands{2} = [20,25];
@@ -234,6 +235,8 @@ for trial = 1:trials                                % run over all the trials
         
         % Slope
         transposeMat = (welch{channel}(:,trial)');          % transpose matrix
+        size(transposeMat);
+        disp(channel);
         % create local function for computing the polyfit on the transposed matrix and the frequency vector
         FitFH = @(k)polyfit(log(f(1,:)),log(transposeMat(k,:)),1);
         % convert the cell that gets from the local func into matrix, perform the
@@ -255,7 +258,9 @@ for trial = 1:trials                                % run over all the trials
         % Mean Frequency
         % returns the mean frequency of a power spectral density (PSD) estimate, pxx.
         % The frequencies, f, correspond to the estimates in pxx.
+        size(normlizedMatrix)
         MIFeaturesLabel(trial,channel,n) = meanfreq(normlizedMatrix,f);
+        
         n = n + 1;
         disp(strcat('Extracted Mean Frequency from electrode:',EEG_chans(channel,:)))
         

@@ -44,7 +44,7 @@ def set_reference_digitization(raw):
     raw.set_montage(ten_twenty_montage)
     return raw
 
-fname = 'C:\Recordings\Sub101\EEG.xdf'
+fname = 'C:\Recordings\EEG_ONLINE5.xdf'
 streams, header = pyxdf.load_xdf(fname)
 #streams[0]=streams1[1]
 #streams[1]=streams1[0]
@@ -55,7 +55,7 @@ for i in np.arange(len(streams[1]["time_stamps"])):
     events[i,0]=c[0]
 events[:,2]=np.transpose(streams[1]["time_series"])
 
-event_id={'left':1,'right':2}
+event_id={'left_hand':1,'right_hand':2}#,'left_pre':11,'right_pre':12}
 #events=mne.pick_events([1.,2.,3.])
 data = np.transpose(streams[0]["time_series"][:,0:13])
 chs=['C3','C4','Cz','FC1',
@@ -66,6 +66,7 @@ data*= (1e-6 / 50 / 2)
 info = mne.create_info(chs, sfreq, 'eeg')
 raw = mne.io.RawArray(data,info)
 raw=set_reference_digitization(raw)
+#raw.crop(tmin=320)
 #raw.set_montage()
 #%%
 anno=mne.annotations_from_events(events, sfreq)
@@ -73,12 +74,23 @@ raw.set_annotations(anno)
 #%%
 raw.plot()
         #%%
-raw=raw.filter(1.,40.)
+raw=raw.filter(0.5,40.)
 
 #%%
 
 #%%
 events=events.astype(int)
+#%%
+left_idx=np.where(events[:,2]==1)
+match_pre=left_idx[0][np.where(events[left_idx[0]+1,2]==11)]
+anmatch_pre=left_idx[0][np.where(events[left_idx[0]+1,2]==12)]
+#%%
+right_idx=np.where(events[:,2]==2)
+match_pre=np.append(match_pre,right_idx[0][np.where(events[right_idx[0]+1,2]==12)])
+anmatch_pre=np.append(anmatch_pre,right_idx[0][np.where(events[right_idx[0]+1,2]==11)])
+events[match_pre,2]=6
+events[anmatch_pre,2]=7
+event_id={'true':6,'false':7}
 epochs=mne.Epochs(raw,events,event_id=event_id,tmin=-1.,tmax=2.5,baseline=None)
 #epochs.plot()
 #%%
@@ -91,12 +103,16 @@ ica.plot_components()
 ica.exclude = [] 
 
 #ica.apply(epochs)
-
 #%%
-evoked_left=epochs['left'].average()
-evoked_left.plot(titles='left',spatial_colors=True, gfp= True)
-evoked_right=epochs['right'].average()
-evoked_right.plot(titles='right',spatial_colors=True,gfp= True)
+#evo=epochs['false'].average()
+#evo.plot(spatial_colors=True,titles='false')
+#evo=epochs['true'].average()
+#evo.plot(spatial_colors=True,titles='true')
+#%%
+#evoked_left=epochs['left'].average()
+#evoked_left.plot(titles='left',spatial_colors=True, gfp= True)
+#evoked_right=epochs['right'].average()
+#evoked_right.plot(titles='right',spatial_colors=True,gfp= True)
 #evoked_idle=epochs['idle'].average()
 #evoked_idle.plot(titles='idle',spatial_colors=True,gfp= True)
 #%%
@@ -104,12 +120,13 @@ evoked_right.plot(titles='right',spatial_colors=True,gfp= True)
 #evoked_left.plot_topomap([0,0.1,0.5,1.,1.5,2.,3.,4.])
 #evoked_idle.plot_topomap([0,0.1,0.5,1.,1.5,2.,3.,4.])
 #%%
-tfr_freqs = np.arange(5., 40., 3.)
+tfr_freqs = np.arange(1., 40., 3.)
 window_size = 0.3
 #tfr_freqs = np.logspace(0.7, 2.2, 25)
 tfr_cycles = tfr_freqs * window_size
 freq_baseline = (-0.5,0.)
-condition=['left','right']
+condition=list(event_id.keys())
+#condition=(['true','false'])#,'left_pre','right_pre'])
 for i in np.arange(len(condition)):
  this_epochs = epochs[condition[i]]
  this_epochs.apply_baseline((-0.5,0))
@@ -127,9 +144,9 @@ cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 # Classification & time-frequency parameters
 tmin, tmax = 0.1, 5
 n_cycles = 3.  # how many complete cycles: used to define window size
-min_freq = 10.
-max_freq = 30.
-n_freqs = 6  # how many frequency bins to use
+min_freq = 1.
+max_freq = 40.
+n_freqs = 8  # how many frequency bins to use
 
 # Assemble list of frequency range tuples
 freqs = np.linspace(min_freq, max_freq, n_freqs)  # assemble frequencies
@@ -144,7 +161,7 @@ n_windows = len(centered_w_times)
 # Instantiate label encoder
 le = LabelEncoder()
 freq_scores = np.zeros((n_freqs - 1,))
-event_id={'left':1,'right':2}
+#event_id={'left':1,'right':2}
 
 plt.figure()
 # Loop through each frequency range of interest
@@ -175,7 +192,7 @@ for freq, (fmin, fmax) in enumerate(freq_ranges):
         align='edge', edgecolor='black')
 plt.xticks(freqs)
 plt.ylim([0, 1])
-plt.axhline(len(epochs['left']) / len(epochs), color='k', linestyle='--',
+plt.axhline(0.5, color='k', linestyle='--',
             label='chance level')
 plt.legend()
 plt.xlabel('Frequency (Hz)')

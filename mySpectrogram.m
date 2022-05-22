@@ -20,7 +20,7 @@ for index = 1:length(chans)
     figure('name','Spectrogram');                       % open a figure
     sgtitle(strcat('Electrode:',EEG_chans(elect,:)));   % current figure title
     for class = 1:numClasses
-        subplot(numClasses-1,2,class);                  % which subplot is being populated
+        subplot(numClasses,2,class);                  % which subplot is being populated
         surf(t,f,10*log10(squeeze(totalSpect(elect,class,:,:))),'EdgeColor','none','FaceAlpha',0.5);
         % "surf" is a Matlab function used to create a 3D colored surface
         xlabel('Time'); ylabel('Frequency'); zlabel('PSD');     % define title for each dimension
