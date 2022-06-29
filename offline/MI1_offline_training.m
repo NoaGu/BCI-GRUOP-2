@@ -1,4 +1,4 @@
-function [recordingFolder,subID] = MI1_offline_training()
+function [recordingFolder,subID] = MI1_offline_training_version2()
 %% MOTOR IMAGERY Training Scaffolding 
 % This code creates a training paradigm with (#) classes on screen for
 % (#) numTrials. Before each trial, one of the targets is cued (and remains
@@ -23,15 +23,15 @@ recordingFolder = strcat(rootFolder,'\Sub',num2str(subID),'\');
 mkdir(recordingFolder);
 
 % Define times
-InitWait = 5;                           % before trials prep time
+InitWait = 8;                           % before trials prep time
 trialLength =2.5 ;                        % each trial length in seconds 
-cueLength = 0;                          % time for each cue
+cueLength = 2;                          % time for each cue
 readyLength = 0;                        % time "ready" on screen
-nextLength = 1.5;                         % time "next" on screen
+nextLength = 2;                         % time "next" on screen
 
 % Define length and classes
-numTrials = 30;                         % set number of training trials per class (the more classes, the more trials per class)
-numClasses = 3;                         % set number of possible classes
+numTrials = 20;                         % set number of training trials per class (the more classes, the more trials per class)
+numClasses = 2;                         % set number of possible classes
 
 % Set markers / triggers names
 startRecordings = 000;          
@@ -75,10 +75,16 @@ hAx.YLim = [0, 1];
 hold on
 
 %% Prepare Visual Cues - read the right/left/idle images
-trainingImage{1} = imread('square.jpeg','jpeg');
-trainingImage{2} = imread('arrow_left.jpeg','jpeg');
-trainingImage{3} = imread('arrow_right.jpeg','jpeg');
-    
+%trainingImage{3} = imread('square.jpeg','jpeg');
+%trainingImage{1} = imread('arrow_left.jpeg','jpeg');
+%trainingImage{2} = imread('arrow_right.jpeg','jpeg');
+trainingImage{1} = imread('hand_left.png','png');
+trainingImage{3} = imread('leg_left.png','png');
+trainingImage{2} = imread('hand_right.png','png');
+trainingImage{4} = imread('leg_right.png','png');
+ %%
+ %define diffrent rates
+ rate=[15,3,15,3]
 %% Prepare Training Vector
 trainingVec = prepareTraining(numTrials,numClasses);    % vector with the conditions for each trial
 save(strcat(recordingFolder,'trainingVec.mat'),'trainingVec');
@@ -97,23 +103,25 @@ for trial = 1:totalTrials
     currentClass = trainingVec(trial);          % What class is it?
     
     % Cue before ready
+    for i= 1:rate(currentClass)
     image(flip(trainingImage{currentClass}, 1), 'XData', [0.25, 0.75],...
-        'YData', [0.25, 0.75 * ...
+        'YData', [0.25, 0.50 * ...
         size(trainingImage{currentClass},1)./ size(trainingImage{currentClass},2)])
-    pause(cueLength);                           % Pause for cue length
+    pause(0.5*(cueLength/rate(currentClass)));                           % Pause for cue length
     cla                                         % Clear axis
-    
+    pause(0.5*(cueLength/rate(currentClass))); 
+    end
     % Ready
-    text(0.5,0.5 , 'Ready',...
-        'HorizontalAlignment', 'Center', 'Color', 'white', 'FontSize', 40);
+    %text(0.5,0.5 , 'Ready',...
+       % 'HorizontalAlignment', 'Center', 'Color', 'white', 'FontSize', 40);
     outletStream.push_sample(Baseline);         % Baseline trigger
-    pause(readyLength);                         % Pause for ready length
-    cla                                         % Clear axis
+    %pause(readyLength);                         % Pause for ready length
+    %cla                                         % Clear axis
     
     % Show image of the corresponding label of the trial
-    image(flip(trainingImage{currentClass}, 1), 'XData', [0.25, 0.75],...
-        'YData', [0.25, 0.75 * ...
-        size(trainingImage{currentClass},1)./ size(trainingImage{currentClass},2)])    
+    %image(flip(trainingImage{3}, 1), 'XData', [0.25, 0.75],...
+     %   'YData', [0.25, 0.75 * ...
+      %  size(trainingImage{currentClass},1)./ size(trainingImage{currentClass},2)])    
     outletStream.push_sample(currentClass);     % class label
     pause(trialLength)                          % Pause for trial length
     cla                                         % Clear axis
@@ -130,7 +138,7 @@ for trial = 1:totalTrials
     
     outletStream.push_sample(endTrial);         % end of trial trigger
 end
-
+close all
 %% End of experiment
 outletStream.push_sample(endRecrding);          % end of experiment trigger
 disp('!!!!!!! Stop the LabRecorder recording!');

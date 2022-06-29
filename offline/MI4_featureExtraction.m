@@ -36,7 +36,7 @@ Fs = 125;                                                       % openBCI Cyton+
 trials = size(MIData,1);                                        % get number of trials from main data variable
 [R, C] = size(EEG_chans);                                       % get EEG_chans (char matrix) size - rows and columns
 chanLocs = reshape(EEG_chans',[1, R*C]);                        % reshape into a vector in the correct order
-numChans = 11 %size(MIData,2);                                      % get number of channels from main data variable
+numChans = size(MIData,2);                                      % get number of channels from main data variable
 
 % Visual Feature Selection: Power Spectrum
 % init cells for  Power Spectrum display
@@ -83,7 +83,7 @@ end
 % manually plot (surf) mean spectrogram for channels C4 + C3:
 mySpectrogram(t,spectFreq,totalSpect,numClasses,vizChans,EEG_chans)
 
-
+save([recordingFolder,'\totalSpect'],'totalSpect')
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% Add your own data visualization here %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -325,29 +325,30 @@ SelectedIdx = selected(1:Features2Select);
 FeaturesTrainSelected = FeaturesTrain(:,SelectedIdx);       % updating the matrix feature
 FeaturesTest = FeaturesTest(:,SelectedIdx);                 % updating the matrix feature
 %% Matrix visualization 
-%figure;
+figure;
 num_channels = 13;
 num_features_per_channel = 14;
-% weightMatrix = zeros(num_channels, num_features_per_channel);
-%weightMatrix = reshape(class.FeatureWeights(4:end), num_features_per_channel, num_channels).';
+ %weightMatrix = zeros(num_channels, num_features_per_channel);
+ size(class.FeatureWeights(4:end))
+weightMatrix = reshape(class.FeatureWeights(4:end), num_features_per_channel, num_channels).';
 features_headers = {'15.5-18.5 band', '8-10.5 band', '10-15.5 band', '17.5-20.5 band', ...
     '12.5-30 band', 'Root', 'Moment', 'Edge', ...
     'Entropy', 'Slope', 'Intercept', 'Mean freq', 'Obw', 'Powerbw'};
 channel_names = {'C03','C04','C0Z','FC1',...
     'FC2','FC5','F06','CP1', 'CP2',...
     'CP5','CP6','O01','O02'};
-% figure()
-% imagesc(weightMatrix);
-% xticks([1:14])
-% yticks([1:13])
-% xticklabels(features_headers)
-% xtickangle(70)
-% yticklabels(channel_names)
-% title('Feature matrix visualization')
-% % Set up where it will show x, y, and value in status line.
-% impixelinfo;
-% Get the current colormap
-%cmap = colormap;
+figure()
+imagesc(weightMatrix);
+xticks([1:14])
+yticks([1:13])
+xticklabels(features_headers)
+xtickangle(70)
+yticklabels(channel_names)
+title('Feature matrix visualization')
+% Set up where it will show x, y, and value in status line.
+impixelinfo;
+%Get the current colormap
+cmap = colormap;
 %saving
 figure()
 for i=1:length(LabelTrain)

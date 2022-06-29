@@ -1,11 +1,11 @@
 %% connect runs
-runs_name=[110,111,200,300]
+runs_name=[1,3,4]
 x=[]
 trainingVec=[]
-new_folder='C:\Recordings\Sub400'
+new_folder='C:\Recordings\online'
 %mkdir(new_folder)
 for i=1:length(runs_name)
-    recordingFolder=['C:\Recordings\Sub',num2str(runs_name(i))]
+    recordingFolder=['C:\Recordings\online',num2str(runs_name(i))]
     load(strcat(recordingFolder,'\MIData.mat'));
     targetLabels = cell2mat(struct2cell(load(strcat(recordingFolder,'\trainingVec'))));
     length(targetLabels)

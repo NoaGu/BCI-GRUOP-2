@@ -27,14 +27,13 @@ function final_vote=MI_Online_Learning(recordingFolder)
 % (harelasa@post.bgu.ac.il) in 2021. You are free to use, change, adapt and
 % so on - but please cite properly if published.
 
-%clearvars % change to clear all?
-%close all
-%clc
+
 
 %% Addpath for relevant folders - original recording folder and LSL folders
 addpath('YOUR RECORDING FOLDER PATH HERE');
 addpath('YOUR LSL FOLDER PATH HERE');
 %%
+error_response= true %if you want real feedback use false, if you want to control the amount of right and wrong feedback use true 
 %% Lab Streaming Layer Init
 disp('Loading the Lab Streaming Layer library...');
 % Init LSL parameters
@@ -59,7 +58,7 @@ block_num=1
 images{1} = imread(params.leftImageName, 'jpeg');
 images{3} = imread(params.squareImageName, 'jpeg');
 images{2} = imread(params.rightImageName, 'jpeg');
-numTrials=25
+numTrials=40
 numConditions=2
 cueVec = prepareTraining(numTrials,numConditions);  % prepare the cue vector
 save('C:\Recordings\sub0traningVec','cueVec')
@@ -178,8 +177,9 @@ for trial = 1:numTrials
            [ myPrediction(decCount),score{decCount}] =  predict(Mdl4,EEG_Features );
            %disp('score')
             %score{decCount}
-            rand_num=randi(4)
-            if rand_num<4
+            if error_response
+            rand_num=randi(3)
+            if rand_num<3
                 myPrediction(decCount)=currentClass
             else
                 if currentClass==1
@@ -187,6 +187,7 @@ for trial = 1:numTrials
                 else
                      myPrediction(decCount)=1
                 end
+            end
             end
             if feedbackFlag
                 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

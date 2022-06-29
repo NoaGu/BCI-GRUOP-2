@@ -34,10 +34,12 @@ train a classifier.
 
 1. MI1_Training.m- Code for recording new training sessions.
 2. MI2_Preprocess.m- Function to preprocess raw EEG data.
-3. MI3_SegmentData.m- Function that segments the preprocessed data into chunks.
+3. MI3_Segmentition.m- Function that segments the preprocessed data into chunks\MI3_segmentition_error response do the same for erorr response analysis. 
 4. MI4_ExtractFeatures.m- Function to extract features from the segmented chunks.
 5. kfoldtest.m- Function to train a classifier based on the features extracted earlier.
 6. Additional matlab files for helpful subfunctions of the code. Specifically, we’ll mention connectruns.mat, which connects data from different recordings.
+7. prePro_and_epochs.py- python (MNE) code for preprocessing, epoching ,visualization and frequncy decoding. 
+
 
 
 
